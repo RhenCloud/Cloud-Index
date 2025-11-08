@@ -295,20 +295,35 @@
         }
     }
 
-    function registerServiceWorker() {
+    function unregisterServiceWorker() {
         if (!("serviceWorker" in navigator)) {
             return;
         }
 
         window.addEventListener("load", () => {
             navigator.serviceWorker
-                .register("/static/sw.js")
-                .then((registration) => {
-                    console.log("SW registered:", registration);
+                .getRegistrations()
+                .then((registrations) => {
+                    registrations.forEach((registration) => {
+                        registration.unregister().then(() => {
+                            console.log("Service Worker unregistered");
+                        });
+                    });
                 })
                 .catch((error) => {
-                    console.log("SW registration failed:", error);
+                    console.log("Error unregistering Service Worker:", error);
                 });
+
+            // 清理 Service Worker 相关的缓存
+            if ("caches" in window) {
+                caches.keys().then((cacheNames) => {
+                    cacheNames.forEach((cacheName) => {
+                        caches.delete(cacheName).then(() => {
+                            console.log("Cache deleted:", cacheName);
+                        });
+                    });
+                });
+            }
         });
     }
 
@@ -527,24 +542,67 @@
         updateSelectAllState();
     }
 
+    function attachDownloadButtonListeners() {
+        const downloadButtons = document.querySelectorAll("[data-download-key]");
+        downloadButtons.forEach((button) => {
+            if (!button.dataset.listenerAttached) {
+                button.addEventListener("click", () => {
+                    const key = button.dataset.downloadKey;
+                    const name = button.dataset.downloadName;
+                    downloadFile(`/download/${key}`, name);
+                });
+                button.dataset.listenerAttached = "true";
+            }
+        });
+    }
+
     function downloadFile(url, filename) {
         if (!url) {
             updateStatus("✗ 无法下载：缺少下载链接", "error");
             return;
         }
 
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = filename || "";
-        link.target = "_blank";
-        link.rel = "noopener";
+        // 对于 /download/ 路径，使用 fetch 以更好地处理大文件和错误
+        if (url.startsWith("/download/")) {
+            fetch(url)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.blob();
+                })
+                .then((blob) => {
+                    const link = document.createElement("a");
+                    const blobUrl = URL.createObjectURL(blob);
+                    link.href = blobUrl;
+                    link.download = filename || "file";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(blobUrl);
 
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+                    const statusDiv = updateStatus(`✓ 开始下载: ${filename || ""}`, "success");
+                    hideStatusLater(statusDiv);
+                })
+                .catch((error) => {
+                    console.error("Download error:", error);
+                    updateStatus(`✗ 下载失败: ${error.message}`, "error");
+                });
+        } else {
+            // 对于外部 URL，使用传统方法
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename || "";
+            link.target = "_blank";
+            link.rel = "noopener";
 
-        const statusDiv = updateStatus(`✓ 开始下载: ${filename || ""}`, "success");
-        hideStatusLater(statusDiv);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            const statusDiv = updateStatus(`✓ 开始下载: ${filename || ""}`, "success");
+            hideStatusLater(statusDiv);
+        }
     }
 
     async function deleteSelectedEntries() {
@@ -885,8 +943,9 @@
         initDialog();
         initThemeAndView();
         registerModalHandlers();
-        registerServiceWorker();
+        unregisterServiceWorker();
         attachEntryCheckboxListeners();
+        attachDownloadButtonListeners();
     });
 
     window.uploadFiles = uploadFiles;

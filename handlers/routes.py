@@ -171,37 +171,94 @@ def browse(prefix_path):
 
 @main_route.route("/file/<path:file_path>")
 def serve_file(file_path):
-    """通过服务器提供文件访问"""
+    """重定向到原始存储 URL，节省服务器资源"""
     try:
-        # 获取文件的基本信息，验证文件存在并检查大小
+        # 验证文件存在
         try:
-            info = storage.get_object_info(file_path)
+            storage.get_object_info(file_path)
         except Exception:
             abort(404)
 
-        size = int(info.get("ContentLength", 0) or 0)
-        limit = 6 * 1024 * 1024  # 6 MB
+        # 尝试获取预签名 URL（用于私有存储或需要时间限制的 URL）
+        presigned = storage.generate_presigned_url(file_path)
+        if presigned:
+            return redirect(presigned)
 
-        # 如果文件较大，避免通过 Serverless 函数传输，返回预签名 URL 的重定向
-        if size > limit:
-            presigned = storage.generate_presigned_url(file_path)
-            if presigned:
-                return redirect(presigned)
-            # 如果没有预签名 URL，则返回 413（Payload Too Large）
-            abort(413)
+        # 如果没有预签名 URL，尝试获取公共 URL
+        public_url = storage.get_public_url(file_path)
+        if public_url:
+            return redirect(public_url)
 
-        # 小文件：直接从存储获取并通过 Response 返回（流式）
-        file_obj = storage.get_object(file_path)
-        headers = {
-            "Content-Type": file_obj.get("ContentType", "application/octet-stream"),
-            "Content-Length": str(file_obj.get("ContentLength", 0)),
-        }
-
-        return Response(
-            file_obj["Body"].iter_chunks(), headers=headers, direct_passthrough=True
-        )
+        # 如果都没有可用的 URL，返回错误
+        abort(403)
 
     except Exception:
+        abort(500)
+
+
+@main_route.route("/download/<path:file_path>")
+def download_file(file_path):
+    """为 GitHub 存储提供下载支持，添加 Content-Disposition 头以强制下载"""
+    try:
+        # 验证文件存在
+        try:
+            storage.get_object_info(file_path)
+        except Exception:
+            abort(404)
+
+        # 获取存储类型
+        storage_type = type(storage).__name__
+
+        # GitHub 存储：通过服务器中继以添加 Content-Disposition 头
+        if storage_type == "GitHubStorage":
+            try:
+                file_obj = storage.get_object(file_path)
+                file_name = file_path.split("/")[-1] if "/" in file_path else file_path
+
+                # 获取完整内容用于返回
+                body = file_obj.get("Body")
+                if hasattr(body, "read"):
+                    content = body.read()
+                elif hasattr(body, "data"):
+                    content = body.data
+                else:
+                    content = body
+
+                # 使用 RFC 5987 编码处理文件名中的特殊字符
+                from urllib.parse import quote
+
+                encoded_filename = quote(file_name.encode("utf-8"), safe="")
+
+                headers = {
+                    "Content-Type": file_obj.get(
+                        "ContentType", "application/octet-stream"
+                    ),
+                    "Content-Disposition": f"attachment; filename=\"{file_name}\"; filename*=UTF-8''{encoded_filename}",
+                    "Cache-Control": "public, max-age=86400",
+                }
+
+                return Response(
+                    content,
+                    headers=headers,
+                    mimetype=file_obj.get("ContentType", "application/octet-stream"),
+                )
+            except Exception as e:
+                print(f"GitHub download error: {e}")
+                abort(404)
+
+        # R2 和其他存储：直接重定向
+        presigned = storage.generate_presigned_url(file_path)
+        if presigned:
+            return redirect(presigned)
+
+        public_url = storage.get_public_url(file_path)
+        if public_url:
+            return redirect(public_url)
+
+        abort(403)
+
+    except Exception as e:
+        print(f"Download error: {e}")
         abort(500)
 
 

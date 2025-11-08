@@ -604,13 +604,46 @@ async function uploadMultipleFiles(files) {
 - 总文件大小: 最多 10GB
 - API 请求频率: 根据您的 R2 套餐
 
-<!-- ### Github
+### GitHub Repository
 
 - 单文件大小: 最大 100MB（建议 < 50MB）
 - API 请求频率:
   - 有 Token: 5000 请求/小时
   - 无 Token: 60 请求/小时
-- Repository 总大小: 建议 < 1GB -->
+- Repository 总大小: 建议 < 1GB
+- 提交数量: 无限制
+
+## 存储配置
+
+### Cloudflare R2 配置
+
+```env
+STORAGE_TYPE=r2
+ACCESS_KEY_ID=your-access-key
+SECRET_ACCESS_KEY=your-secret-key
+R2_BUCKET_NAME=your-bucket
+R2_ENDPOINT_URL=https://your-endpoint.r2.cloudflarestorage.com
+R2_REGION=auto
+R2_PUBLIC_URL=https://pub-your-bucket.r2.dev
+R2_PRESIGN_EXPIRES=3600
+```
+
+### GitHub Repository 配置
+
+```env
+STORAGE_TYPE=github
+GITHUB_REPO_OWNER=your-username
+GITHUB_REPO_NAME=your-repo
+GITHUB_ACCESS_TOKEN=your-personal-access-token
+GITHUB_BRANCH=main
+```
+
+**获取 GitHub Access Token:**
+
+1. 访问 [GitHub Settings - Personal Access Tokens](https://github.com/settings/tokens)
+2. 点击 "Generate new token" (Classic)
+3. 选择 "repo" 权限范围
+4. 生成并复制 Token
 
 ## 安全建议
 
@@ -624,3 +657,5 @@ async function uploadMultipleFiles(files) {
 8. **访问控制**: 根据用户身份实施细粒度的访问控制
 9. **加密**: 对敏感数据进行加密存储和传输
 10. **备份**: 定期备份存储中的重要数据
+11. **Token 安全**: 不要将 Access Token 提交到版本控制系统，使用 `.env` 文件管理
+12. **定期轮换**: 定期轮换 Access Token 和密钥

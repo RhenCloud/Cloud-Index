@@ -19,7 +19,7 @@
 
 ## TODO
 
-- [ ] Github Repo 储存支持
+- [x] Github Repo 储存支持
 - [ ] Github Release 储存支持
 - [ ] 基于数据库的用户/权限管理
 - [ ] 操作日志记录
@@ -31,7 +31,8 @@
 
 - **Cloudflare R2** - Cloudflare 的对象存储服务（S3 兼容）
 - **Amazon S3** - Amazon S3 对象存储服务
-<!-- - **Github Repo** - 基于 GitHub Repository 的存储服务 -->
+- **GitHub Repository** - 基于 GitHub Repository 的存储服务
+<!-- - **Github Release** - 基于 GitHub Release 的存储服务 -->
 
 ## 快速开始
 
@@ -97,9 +98,36 @@ R2_PUBLIC_URL=https://pub-your-bucket.r2.dev
 R2_PRESIGN_EXPIRES=3600
 ```
 
+### GitHub Repository 配置
+
+```env
+STORAGE_TYPE=github
+
+# GitHub 仓库所有者（用户名或组织）
+GITHUB_REPO_OWNER=your-username
+
+# GitHub 仓库名称
+GITHUB_REPO_NAME=your-repo
+
+# GitHub 个人访问令牌（需要 repo 权限）
+# 获取方式：https://github.com/settings/tokens
+GITHUB_ACCESS_TOKEN=ghp_your_token_here
+
+# GitHub 分支名称（可选，默认: main）
+GITHUB_BRANCH=main
+
+# GitHub Raw 文件反向代理 URL（可选，用于加速访问）
+# 常用反向代理：
+# - https://raw.fastgit.org （推荐，速度快）
+# - https://ghproxy.com/https://raw.githubusercontent.com （需要拼接路径）
+# - https://raw.kgithub.com
+# 留空则使用官方 raw.githubusercontent.com（国内可能较慢）
+GITHUB_RAW_PROXY_URL=https://raw.fastgit.org
+```
+
 ## 项目结构
 
-```
+```bash
 r2-index/
 ├── app.py                 # Flask 应用主入口
 ├── handlers/

@@ -6,6 +6,7 @@ import dotenv
 from .base import BaseStorage
 
 # from .cnbcool import CnbCoolStorage
+from .github import GitHubStorage
 from .r2 import R2Storage
 
 dotenv.load_dotenv()
@@ -36,14 +37,14 @@ class StorageFactory:
 
         if storage_type == "r2":
             cls._instance = R2Storage()
-        # elif storage_type == "github":
-        #     cls._instance = GithubStorage()
+        elif storage_type == "github":
+            cls._instance = GitHubStorage()
         # elif storage_type == "cnbcool":
         #     cls._instance = CnbCoolStorage()
         else:
             raise RuntimeError(
                 f"Unsupported storage type: {storage_type}. "
-                f"Supported types: r2, cnbcool"
+                f"Supported types: r2, github, cnbcool"
             )
 
         return cls._instance

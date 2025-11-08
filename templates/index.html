@@ -1,5 +1,5 @@
-{% extends 'base.html' %} {% block title %}Cloud Index{% endblock %} {% block body_attrs
-%}data-current-prefix="{{ current_prefix }}"{% endblock %} {% block content %}
+{% extends 'base.html' %} {% block title %}Cloud Index{% endblock %} {% block body_attrs %}data-current-prefix="{{
+current_prefix }}"{% endblock %} {% block content %}
 <div class="container">
     <h1>
         Cloud Index
@@ -109,7 +109,8 @@
                     </button>
                     <button
                         class="action-link download-btn"
-                        onclick="downloadFile({{ (entry.public_url or entry.file_url)|tojson|safe }}, {{ entry.name|tojson|safe }})"
+                        data-download-key="{{ entry.key }}"
+                        data-download-name="{{ entry.name }}"
                     >
                         <i class="fas fa-download"></i> 下载
                     </button>
@@ -148,7 +149,9 @@
                 />
             </div>
             {% if entry.is_dir %}
-            <i class="fas fa-folder fa-2x" style="color: var(--folder-color)"></i>
+            <div class="grid-icon" onclick="window.location.href='/{{ entry.key.rstrip('/') }}'">
+                <i class="fas fa-folder" style="color: var(--folder-color)"></i>
+            </div>
             <a class="grid-name" href="/{{ entry.key.rstrip('/') }}">{{ entry.name }}</a>
             <div class="grid-actions">
                 <button
@@ -177,11 +180,17 @@
                 </button>
             </div>
             {% else %} {% if entry.name|fileicon == 'fas fa-image' %}
-            <div style="cursor: pointer" onclick="openPreview('{{ entry.file_url }}', '{{ entry.name }}')">
-                <img class="grid-thumb" src="{{ entry.file_url }}" alt="{{ entry.name }}" />
+            <div class="grid-thumb" onclick="openPreview('{{ entry.file_url }}', '{{ entry.name }}')">
+                <img
+                    style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px"
+                    src="{{ entry.file_url }}"
+                    alt="{{ entry.name }}"
+                />
             </div>
             {% else %}
-            <i class="{{ entry.name|fileicon }} fa-2x" style="color: var(--file-color)"></i>
+            <div class="grid-icon" onclick="openPreview('{{ entry.file_url }}', '{{ entry.name }}')">
+                <i class="{{ entry.name|fileicon }}" style="color: var(--file-color)"></i>
+            </div>
             {% endif %}
             <a
                 class="grid-name"
@@ -202,7 +211,8 @@
                 </button>
                 <button
                     class="grid-action-btn download"
-                    onclick="downloadFile({{ (entry.public_url or entry.file_url)|tojson|safe }}, {{ entry.name|tojson|safe }})"
+                    data-download-key="{{ entry.key }}"
+                    data-download-name="{{ entry.name }}"
                     title="下载"
                 >
                     <i class="fas fa-download"></i>

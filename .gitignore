@@ -28,4 +28,7 @@ env.bak/
 venv.bak/ 
 .vercel
 
-.vercel
+test*
+tests/
+
+.VSCodeCounter

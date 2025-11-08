@@ -1,0 +1,38 @@
+# 测试文件
+test_*.py
+*_test.py
+tests/
+
+# 开发工具
+debug/
+.vscode/
+.idea/
+*.pyc
+__pycache__/
+
+# 文档
+docs/
+*.md
+!README.md
+
+# 环境配置
+.env
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+
+# Python
+venv/
+env/
+*.egg-info/
+
+test/
+tests/
+test*
+
+# 临时文件
+*.tmp
+*.log

@@ -1,13 +1,13 @@
 {
     "version": 2,
-    "devCommand": "python ./app.py",
     "builds": [
         {
             "src": "app.py",
-            "use": "@vercel/python",
-            "config": {
-                "pythonVersion": "3.11"
-            }
+            "use": "@vercel/python"
+        },
+        {
+            "src": "/static/**",
+            "use": "@vercel/static"
         }
     ],
     "routes": [

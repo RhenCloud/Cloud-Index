@@ -32,3 +32,6 @@ test*
 tests/
 
 .VSCodeCounter
+
+.vscode/
+debug/

@@ -1,6 +1,7 @@
 # Cloud-Index
 
 一个支持多种云存储后端的文件管理、索引和浏览服务。
+
 更多详细信息请访问 [项目文档](https://docs.cloud-index.rhen.cloud)
 
 我在这个项目上至少花费了：

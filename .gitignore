@@ -35,3 +35,4 @@ tests/
 
 .vscode/
 debug/
+node_modules

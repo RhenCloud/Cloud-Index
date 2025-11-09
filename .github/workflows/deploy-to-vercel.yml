@@ -5,6 +5,20 @@ on:
         branches:
             - docs
     workflow_dispatch:
+        inputs:
+            environment:
+                description: "部署环境"
+                required: false
+                default: "production"
+                type: choice
+                options:
+                    - production
+                    - preview
+            force_rebuild:
+                description: "强制重新构建"
+                required: false
+                type: boolean
+                default: false
 
 jobs:
     vercel-deploy:
@@ -35,4 +49,6 @@ jobs:
                   vercel-token: ${{ secrets.VERCEL_TOKEN }}
                   vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
                   vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-                  vercel-args: --prod
+                  vercel-args: ${{ github.event.inputs.environment == 'preview' && '--' || '--prod' }}
+              env:
+                  FORCE_REBUILD: ${{ github.event.inputs.force_rebuild }}

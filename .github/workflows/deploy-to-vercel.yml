@@ -1,0 +1,38 @@
+name: Deploy to Vercel
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch: {}
+
+jobs:
+    vercel-deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: "10.12.4"
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build documentation
+              run: pnpm run docs:build
+
+            - name: Deploy to Vercel
+              uses: amondnet/vercel-action@v25
+              with:
+                  vercel-token: ${{ secrets.VERCEL_TOKEN }}
+                  vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+                  vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+                  vercel-args: --prod

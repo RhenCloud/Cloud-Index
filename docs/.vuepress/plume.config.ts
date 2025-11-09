@@ -84,8 +84,9 @@ export default defineThemeConfig({
                         text: "部署",
                         collapsed: false,
                         items: [
-                            // { text: "Docker 部署", link: "/guide/docker" },
-                            { text: "Vercel 部署", link: "/guide/vercel" },
+                            { text: "服务器部署", link: "/guide/deployment/server" },
+                            // { text: "Docker 部署", link: "/guide/deployment/docker" },
+                            { text: "Vercel 部署", link: "/guide/deployment/vercel" },
                         ],
                     },
                 ],

@@ -1,16 +1,16 @@
 [project]
-name = "musictool"
+name = "Cloud-Index"
 version = "0.1.0"
-description = "A music tool API built with FastAPI"
+description = "A cloud storage index system based on a number of cloud storage platforms"
 authors = [{ name = "RhenCloud", email = "i@rhen.cloud" }]
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "flask>=3.1.2",
     "uvicorn[standard]>=0.38.0",
-    "pydantic>=2.12.3",
+    "pydantic>=2.12.4",
     "requests>=2.32.5",
-    "boto3>=1.40.64",
+    "boto3>=1.40.69",
     "dotenv>=0.9.9",
     "pillow>=11.3.0",
 ]

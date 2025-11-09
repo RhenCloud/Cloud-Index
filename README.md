@@ -3,6 +3,11 @@
 一个支持多种云存储后端的文件管理、索引和浏览服务。
 更多详细信息请访问 [项目文档](https://docs.cloud-index.rhen.cloud)
 
+我在这个项目上至少花费了：
+
+[![CodeTime Badge](https://shields.jannchie.com/endpoint?style=social&color=222&url=https%3A%2F%2Fapi.codetime.dev%2Fv3%2Fusers%2Fshield%3Fuid%3D34631%26project%3Dr2-index)](https://codetime.dev)
+[![CodeTime Badge](https://shields.jannchie.com/endpoint?style=social&color=222&url=https%3A%2F%2Fapi.codetime.dev%2Fv3%2Fusers%2Fshield%3Fuid%3D34631%26project%3DCloudIndexDocs)](https://codetime.dev)
+
 ## 特性
 
 - 📁 浏览和预览云存储中的文件

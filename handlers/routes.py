@@ -112,7 +112,7 @@ def build_entries(response: Dict[str, Any], prefix: str) -> List[Dict[str, Any]]
 
 
 def build_crumbs(prefix: str) -> List[Dict[str, str]]:
-    """根据当前前缀构建面包屑导航数据。"""
+    """根据当前前缀构建导航数据。"""
     crumbs: List[Dict[str, str]] = []
     if prefix:
         segs = prefix.rstrip("/").split("/")

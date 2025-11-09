@@ -1,4 +1,4 @@
-# R2-Index
+# Cloud-Index
 
 一个支持多种云存储后端的文件管理、索引和浏览服务。
 
@@ -16,6 +16,13 @@
 - 🔄 文件/文件夹移动
 - 📱 响应式界面，多种设备尺寸支持
 - 🌙 深色模式支持
+
+## 在线演示
+
+你可以在在线演示中体验 Cloud Index 的主要功能（浏览、预览、上传、下载等）。
+
+- Demo 地址：[https://r2.demo.cloud-index.rhen.cloud](https://r2.demo.cloud-index.rhen.cloud)（使用Cloudflare R2作为存储后端）
+- Demo 地址：[https://github.demo.cloud-index.rhen.cloud](https://github.demo.cloud-index.rhen.cloud)（使用Github Repository作为存储后端）
 
 ## TODO
 
@@ -39,8 +46,8 @@
 ### 1. 克隆项目
 
 ```bash
-git clone https://github.com/RhenCloud/R2-Index.git
-cd R2-Index
+git clone https://github.com/RhenCloud/Cloud-Index.git
+cd Cloud-Index
 ```
 
 ### 2. 安装依赖
@@ -128,7 +135,7 @@ GITHUB_RAW_PROXY_URL=https://raw.fastgit.org
 ## 项目结构
 
 ```bash
-r2-index/
+cloud-index/
 ├── app.py                 # Flask 应用主入口
 ├── handlers/
 │   └── routes.py         # 路由处理器
@@ -189,36 +196,12 @@ r2-index/
 2. 在 Vercel 项目设置中配置环境变量
 3. 部署
 
-### Docker 部署
-
-您也可以使用 Docker 部署此应用：
-
-```dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-CMD ["python", "app.py"]
-```
-
-构建和运行：
-
-```bash
-docker build -t r2-index .
-docker run -p 5000:5000 --env-file .env r2-index
-```
-
 ### 本地开发
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/RhenCloud/R2-Index.git
-cd R2-Index
+git clone https://github.com/RhenCloud/Cloud-Index.git
+cd Cloud-Index
 
 # 2. 创建虚拟环境
 python -m venv venv

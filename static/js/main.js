@@ -843,6 +843,32 @@
         const extension = filename.toLowerCase().split(".").pop();
         const imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "ico"];
         const videoExtensions = ["mp4", "webm", "ogg", "mov", "avi", "mkv", "m4v"];
+        const audioExtensions = ["mp3", "wav", "ogg", "m4a", "aac", "flac", "opus", "weba"];
+        const pdfExtensions = ["pdf"];
+        const textExtensions = [
+            "txt",
+            "log",
+            "md",
+            "json",
+            "xml",
+            "csv",
+            "js",
+            "css",
+            "html",
+            "py",
+            "java",
+            "c",
+            "cpp",
+            "h",
+            "hpp",
+            "sh",
+            "bat",
+            "yaml",
+            "yml",
+            "toml",
+            "ini",
+            "conf",
+        ];
 
         if (imageExtensions.includes(extension)) {
             return "image";
@@ -850,7 +876,16 @@
         if (videoExtensions.includes(extension)) {
             return "video";
         }
-        return "unknown";
+        if (audioExtensions.includes(extension)) {
+            return "audio";
+        }
+        if (pdfExtensions.includes(extension)) {
+            return "pdf";
+        }
+        if (textExtensions.includes(extension)) {
+            return "text";
+        }
+        return "unsupported";
     }
 
     function openPreview(url, filename) {
@@ -865,8 +900,26 @@
 
         const fileType = getFileType(filename);
 
-        if (fileType === "unknown") {
-            window.open(url, "_blank");
+        // 对于不支持预览的文件类型，显示提示信息
+        if (fileType === "unsupported") {
+            container.innerHTML = `
+                <div class="preview-unsupported">
+                    <i class="fas fa-file-alt" style="font-size: 64px; color: var(--text-secondary); margin-bottom: 16px;"></i>
+                    <p style="font-size: 18px; margin-bottom: 8px;">该文件不支持预览</p>
+                    <p style="color: var(--text-secondary); margin-bottom: 24px;">文件名: ${filename}</p>
+                    <div style="display: flex; gap: 12px; justify-content: center;">
+                        <button class="action-link" onclick="downloadFile('${url}', '${filename}'); closePreview();" style="padding: 8px 16px;">
+                            <i class="fas fa-download"></i> 下载文件
+                        </button>
+                        <button class="action-link" onclick="window.open('${url}', '_blank'); closePreview();" style="padding: 8px 16px;">
+                            <i class="fas fa-external-link-alt"></i> 新窗口打开
+                        </button>
+                    </div>
+                </div>
+            `;
+            info.textContent = filename;
+            modal.classList.add("show");
+            document.body.style.overflow = "hidden";
             return;
         }
 
@@ -905,6 +958,46 @@
                 video.onerror = () => {
                     container.innerHTML = '<div class="preview-error">视频加载失败</div>';
                 };
+            } else if (fileType === "audio") {
+                const audioWrapper = document.createElement("div");
+                audioWrapper.className = "preview-audio-wrapper";
+                audioWrapper.innerHTML = `
+                    <i class="fas fa-music" style="font-size: 64px; color: var(--primary-color); margin-bottom: 24px;"></i>
+                    <audio class="preview-audio" controls autoplay>
+                        <source src="${url}" type="audio/mpeg">
+                        您的浏览器不支持音频播放
+                    </audio>
+                `;
+                container.innerHTML = "";
+                container.appendChild(audioWrapper);
+            } else if (fileType === "pdf") {
+                const iframe = document.createElement("iframe");
+                iframe.className = "preview-content";
+                iframe.src = url;
+                iframe.style.width = "100%";
+                iframe.style.height = "100%";
+                iframe.style.border = "none";
+
+                container.innerHTML = "";
+                container.appendChild(iframe);
+            } else if (fileType === "text") {
+                container.innerHTML = '<div class="preview-loading">加载文本内容...</div>';
+
+                fetch(url)
+                    .then((response) => {
+                        if (!response.ok) throw new Error("加载失败");
+                        return response.text();
+                    })
+                    .then((text) => {
+                        const pre = document.createElement("pre");
+                        pre.className = "preview-text";
+                        pre.textContent = text;
+                        container.innerHTML = "";
+                        container.appendChild(pre);
+                    })
+                    .catch((error) => {
+                        container.innerHTML = '<div class="preview-error">文本加载失败: ' + error.message + "</div>";
+                    });
             }
         }, 100);
     }

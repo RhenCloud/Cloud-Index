@@ -1,6 +1,7 @@
 # Cloud-Index
 
 一个支持多种云存储后端的文件管理、索引和浏览服务。
+更多详细信息请访问 [项目文档](https://docs.cloud-index.rhen.cloud)
 
 ## 特性
 
@@ -70,19 +71,17 @@ cp .env.example .env
 python app.py
 ```
 
+## 部署
+
+### Vercel 部署
+
+项目包含 `vercel.json` 配置文件，可直接部署到 Vercel：
+
+1. 在 Vercel 中导入项目
+2. 在 Vercel 项目设置中配置环境变量
+3. 部署
+
 ## 配置说明
-
-### 选择存储类型
-
-在 `.env` 文件中设置 `STORAGE_TYPE` 来选择存储后端：
-
-```env
-# 使用 Cloudflare R2
-STORAGE_TYPE=r2
-
-# 或使用腾讯云 cnb.cool
-STORAGE_TYPE=cnbcool
-```
 
 ### Cloudflare R2 配置
 
@@ -126,7 +125,7 @@ GITHUB_BRANCH=main
 # GitHub Raw 文件反向代理 URL（可选，用于加速访问）
 # 常用反向代理：
 # - https://raw.fastgit.org （推荐，速度快）
-# - https://ghproxy.com/https://raw.githubusercontent.com （需要拼接路径）
+# - https://ghproxy.com
 # - https://raw.kgithub.com
 # 留空则使用官方 raw.githubusercontent.com（国内可能较慢）
 GITHUB_RAW_PROXY_URL=https://raw.fastgit.org
@@ -144,7 +143,7 @@ cloud-index/
 │   ├── base.py          # 基础存储类（抽象类）
 │   ├── factory.py       # 存储工厂类
 │   ├── r2.py            # Cloudflare R2 实现
-│   └── cnbcool.py       # 腾讯云 cnb.cool 实现
+│   └── github.py        # GitHub Repository 实现
 ├── templates/           # HTML 模板
 │   ├── index.html
 │   └── footer.html
@@ -153,21 +152,6 @@ cloud-index/
 ├── .env.example        # 环境变量示例
 └── requirements.txt    # Python 依赖
 ```
-
-## 贡献
-
-项目采用策略模式和工厂模式，使得添加新的存储后端变得简单：
-
-1. **BaseStorage** - 定义存储后端的统一接口
-2. **具体实现** (R2Storage, CnbCoolStorage) - 实现具体的存储逻辑
-3. **StorageFactory** - 根据配置创建对应的存储实例
-
-### 添加新的存储后端
-
-1. 在 `storages/` 目录下创建新的存储实现文件
-2. 继承 `BaseStorage` 并实现所有抽象方法
-3. 在 `StorageFactory` 中添加对应的创建逻辑
-4. 更新 `.env.example` 添加新的配置项
 
 ## API 路由
 
@@ -185,16 +169,6 @@ cloud-index/
 - `POST /create_folder` - 创建文件夹
 
 详细 API 文档：[API 文档](docs/api.md)
-
-## 部署
-
-### Vercel 部署
-
-项目包含 `vercel.json` 配置文件，可直接部署到 Vercel：
-
-1. 在 Vercel 中导入项目
-2. 在 Vercel 项目设置中配置环境变量
-3. 部署
 
 ### 本地开发
 
@@ -265,7 +239,7 @@ A: 当前支持：
 
 - Cloudflare R2（推荐）
 - Amazon S3
-- GitHub Repository（通过 cnb.cool）
+- GitHub Repository
 
 ### Q: 如何添加新的存储后端？
 
@@ -273,6 +247,18 @@ A: 参考项目结构中的"添加新的存储后端"部分，继承 `BaseStorag
 
 ## 贡献指南
 
+项目采用策略模式和工厂模式，使得添加新的存储后端变得简单：
+
+1. **BaseStorage** - 定义存储后端的统一接口
+2. **具体实现** (R2Storage, GithubStorage) - 实现具体的存储逻辑
+3. **StorageFactory** - 根据配置创建对应的存储实例
+
+### 添加新的存储后端
+
+1. 在 `storages/` 目录下创建新的存储实现文件
+2. 继承 `BaseStorage` 并实现所有抽象方法
+3. 在 `StorageFactory` 中添加对应的创建逻辑
+4. 更新 `.env.example` 添加新的配置项
 欢迎提交 Issue 和 Pull Request！
 
 1. Fork 项目

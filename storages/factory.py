@@ -4,8 +4,6 @@ from typing import Optional
 import dotenv
 
 from .base import BaseStorage
-
-# from .cnbcool import CnbCoolStorage
 from .github import GitHubStorage
 from .r2 import R2Storage
 
@@ -39,12 +37,9 @@ class StorageFactory:
             cls._instance = R2Storage()
         elif storage_type == "github":
             cls._instance = GitHubStorage()
-        # elif storage_type == "cnbcool":
-        #     cls._instance = CnbCoolStorage()
         else:
             raise RuntimeError(
-                f"Unsupported storage type: {storage_type}. "
-                f"Supported types: r2, github, cnbcool"
+                f"Unsupported storage type: {storage_type}. Supported types: r2, github"
             )
 
         return cls._instance

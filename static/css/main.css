@@ -52,6 +52,14 @@ h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+h1 > div {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 /* 通用按钮样式 */
@@ -865,9 +873,7 @@ video.preview-content {
 }
 
 .actions-col {
-    width: auto;
     white-space: nowrap;
-    text-align: right;
 }
 
 .actions-col > * {
@@ -875,7 +881,6 @@ video.preview-content {
     align-items: center;
     gap: 4px;
     margin-left: 4px;
-}
 }
 
 @media (max-width: 1200px) {
@@ -889,35 +894,91 @@ video.preview-content {
 
 @media (max-width: 992px) {
     .last-modified-col {
-        display: none;
+        display: none !important;
     }
     .file-name-col {
-        width: 60%;
-    }
-    .file-size-col {
-        width: 20%;
-    }
-    .actions-col {
-        width: 20%;
+        max-width: 200px;
     }
 }
 
 @media (max-width: 768px) {
     .file-size-col {
-        display: none;
+        display: none !important;
     }
     .file-name-col {
-        width: 70%;
+        max-width: 150px;
     }
-    .actions-col {
-        width: 30%;
-    }
+    
     .files-table .action-text {
         display: none;
     }
 
-    .files-table .action-link {
+    .files-table .action-link,
+    .files-table button.action-link {
         padding: 6px;
+        font-size: 1em;
+        margin-left: 2px;
+    }
+
+    .files-table td,
+    .files-table th {
+        padding: 8px 4px;
+    }
+    
+    .actions-col > * {
+        margin-left: 2px;
+        gap: 2px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        padding: 12px;
+        width: calc(100% - 20px);
+    }
+    
+    h1 {
+        margin-bottom: 20px;
+        padding-bottom: 8px;
+        justify-content: flex-start;
+    }
+    
+    h1 > div {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .files-table td,
+    .files-table th {
+        padding: 6px 2px;
+        font-size: 0.9em;
+    }
+    
+    .checkbox-col {
+        width: 30px;
+    }
+    
+    .file-name-col {
+        max-width: 120px;
+        font-size: 0.85em;
+    }
+    
+    .files-table .action-link,
+    .files-table button.action-link {
+        padding: 4px;
+        font-size: 0.9em;
+        margin-left: 1px;
+    }
+    
+    .actions-col > * {
+        margin-left: 1px;
+        gap: 1px;
+    }
+}
         font-size: 1.1em;
     }
 

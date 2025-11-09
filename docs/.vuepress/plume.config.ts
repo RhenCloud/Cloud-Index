@@ -73,20 +73,21 @@ export default defineThemeConfig({
                     { text: "项目介绍", link: "/guide/introduction" },
                     { text: "快速开始", link: "/guide/quickstart" },
                     {
-                        text: "配置",
-                        collapsed: false,
-                        items: [
-                            { text: "配置指南", link: "/guide/configuration" },
-                            { text: "环境配置", link: "/guide/environment" },
-                        ],
-                    },
-                    {
                         text: "部署",
                         collapsed: false,
                         items: [
+                            { text: "部署指南", link: "/guide/deployment/overview" },
                             { text: "服务器部署", link: "/guide/deployment/server" },
                             // { text: "Docker 部署", link: "/guide/deployment/docker" },
                             { text: "Vercel 部署", link: "/guide/deployment/vercel" },
+                        ],
+                    },
+                    {
+                        text: "配置",
+                        collapsed: false,
+                        items: [
+                            { text: "基础配置", link: "/guide/configuration/configuration" },
+                            { text: "环境配置", link: "/guide/configuration/environment" },
                         ],
                     },
                 ],

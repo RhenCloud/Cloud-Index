@@ -13,9 +13,8 @@ export default defineNavbarConfig([
         items: [
             { text: "项目介绍", link: "/guide/introduction" },
             { text: "快速开始", link: "/guide/quickstart" },
-            { text: "安装指南", link: "/guide/installation" },
-            { text: "配置指南", link: "/guide/configuration" },
-            { text: "部署指南", link: "/guide/deployment" },
+            { text: "部署指南", link: "/guide/deployment/overview" },
+            { text: "配置指南", link: "/guide/configuration/configuration" },
         ],
     },
     {

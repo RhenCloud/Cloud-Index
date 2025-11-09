@@ -1,7 +1,7 @@
 ---
 title: 环境配置
 createTime: 2025/11/09 00:26:55
-permalink: /guide/environment
+permalink: /guide/configuration/environment
 ---
 # 环境变量完整参考
 

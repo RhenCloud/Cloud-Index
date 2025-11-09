@@ -28,8 +28,6 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    max-width: 1200px;
-    margin: 0 auto;
     padding: 20px;
     background-color: var(--bg-color);
     color: var(--text-color);
@@ -41,6 +39,9 @@ body {
     border-radius: 8px;
     box-shadow: 0 2px 4px var(--shadow-color);
     padding: 20px;
+    width: calc(100% - 40px);
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 h1 {
@@ -637,6 +638,20 @@ video.preview-content {
         font-size: 12px;
         padding: 15px;
     }
+
+    .files-table .action-text {
+        display: none;
+    }
+
+    .files-table .action-link {
+        padding: 6px;
+        font-size: 1.1em;
+    }
+
+    .files-table td,
+    .files-table th {
+        padding: 8px 4px;
+    }
 }
 
 /* 上传进度提示 */
@@ -818,4 +833,96 @@ video.preview-content {
 .rename-btn:hover,
 .grid-action-btn.rename:hover {
     color: var(--warning-hover-color, #e0a800);
+}
+
+.file-name-col {
+    width: auto;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-name-col a {
+    display: inline-block;
+    max-width: calc(100% - 30px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.file-size-col {
+    width: 100px;
+    min-width: 100px;
+    white-space: nowrap;
+}
+
+.last-modified-col {
+    width: 180px;
+    min-width: 180px;
+    white-space: nowrap;
+}
+
+.actions-col {
+    width: auto;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.actions-col > * {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 4px;
+}
+}
+
+@media (max-width: 1200px) {
+    .files-table .action-text {
+        display: none;
+    }
+    .files-table .action-link {
+        padding: 6px 8px;
+    }
+}
+
+@media (max-width: 992px) {
+    .last-modified-col {
+        display: none;
+    }
+    .file-name-col {
+        width: 60%;
+    }
+    .file-size-col {
+        width: 20%;
+    }
+    .actions-col {
+        width: 20%;
+    }
+}
+
+@media (max-width: 768px) {
+    .file-size-col {
+        display: none;
+    }
+    .file-name-col {
+        width: 70%;
+    }
+    .actions-col {
+        width: 30%;
+    }
+    .files-table .action-text {
+        display: none;
+    }
+
+    .files-table .action-link {
+        padding: 6px;
+        font-size: 1.1em;
+    }
+
+    .files-table td,
+    .files-table th {
+        padding: 8px 4px;
+    }
 }

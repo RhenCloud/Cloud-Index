@@ -1,7 +1,7 @@
 ---
 title: Vercel 部署
 createTime: 2025/11/09 00:26:55
-permalink: /guide/vercel
+permalink: /guide/deployment/vercel
 ---
 # Vercel 部署
 

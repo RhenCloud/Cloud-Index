@@ -1,7 +1,7 @@
 ---
 title: Docker 部署
 createTime: 2025/11/09 00:26:55
-permalink: /guide/docker
+permalink: /guide/deployment/docker
 ---
 # Docker 部署
 

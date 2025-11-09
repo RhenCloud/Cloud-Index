@@ -1,7 +1,7 @@
 ---
 title: 服务器部署
 createTime: 2025/11/09 00:26:55
-permalink: /guide/server
+permalink: /guide/deployment/server
 ---
 
 在自有或云服务器上部署 Cloud Index 的完整指南。

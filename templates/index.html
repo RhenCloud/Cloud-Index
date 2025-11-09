@@ -103,6 +103,12 @@ current_prefix }}"{% endblock %} {% block content %}
                     <button class="action-link delete-btn" onclick="deleteFolder('{{ entry.key }}')">
                         <i class="fas fa-trash"></i> 删除
                     </button>
+                    <button class="action-link copy-btn" onclick="promptCopyOrMove('{{ entry.key }}', true, 'copy')">
+                        <i class="fas fa-copy"></i> 复制
+                    </button>
+                    <button class="action-link move-btn" onclick="promptCopyOrMove('{{ entry.key }}', true, 'move')">
+                        <i class="fas fa-arrows-alt-h"></i> 移动
+                    </button>
                     {% else %}
                     <button class="action-link" onclick="openPreview('{{ entry.file_url }}', '{{ entry.name }}')">
                         <i class="fas fa-eye"></i> 预览

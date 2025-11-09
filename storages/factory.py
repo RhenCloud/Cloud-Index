@@ -29,9 +29,15 @@ class StorageFactory:
         if cls._instance is not None:
             return cls._instance
 
-        storage_type = os.getenv(
-            "STORAGE_TYPE",
-        ).lower()
+        storage_type = os.getenv("STORAGE_TYPE")
+
+        if not storage_type:
+            raise RuntimeError(
+                "STORAGE_TYPE environment variable is not set. "
+                "Supported types: r2, github"
+            )
+
+        storage_type = storage_type.lower()
 
         if storage_type == "r2":
             cls._instance = R2Storage()

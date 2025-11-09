@@ -35,6 +35,7 @@
 
 - [x] Github Repo 储存支持
 - [ ] Github Release 储存支持
+- [ ] Microsoft Onedrive 储存支持
 - [ ] 基于数据库的用户/权限管理
 - [ ] 操作日志记录
 - [ ] Office Documents 预览支持

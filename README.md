@@ -28,6 +28,7 @@
 
 你可以在在线演示中体验 Cloud Index 的主要功能（浏览、预览、上传、下载等）。
 
+- Demo 地址：[https://demo.cloud-index.rhen.cloud](https://demo.cloud-index.rhen.cloud)
 - Demo 地址：[https://r2.demo.cloud-index.rhen.cloud](https://r2.demo.cloud-index.rhen.cloud)（使用Cloudflare R2作为存储后端）
 - Demo 地址：[https://github.demo.cloud-index.rhen.cloud](https://github.demo.cloud-index.rhen.cloud)（使用Github Repository作为存储后端）
 

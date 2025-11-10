@@ -77,13 +77,19 @@ current_prefix }}"{% endblock %} {% block content %}
                         aria-label="选择 {{ entry.name }}"
                     />
                 </td>
-                <td class="file-name-col">
+                <td
+                    class="file-name-col"
+                    onclick="{% if entry.is_dir %}window.location.href='/{{ entry.key.rstrip('/') }}'{% else %}window.open('{{ entry.file_url }}', '_blank'){% endif %}"
+                    style="cursor: pointer"
+                >
                     {% if entry.is_dir %}
                     <i class="file-icon folder fas fa-folder"></i>
-                    <a href="/{{ entry.key.rstrip('/') }}">{{ entry.name }}</a>
+                    <a href="/{{ entry.key.rstrip('/') }}" onclick="event.stopPropagation();">{{ entry.name }}</a>
                     {% else %}
                     <i class="file-icon file {{ entry.name|fileicon }}"></i>
-                    <a href="{{ entry.file_url }}" target="_blank">{{ entry.name }}</a>
+                    <a href="{{ entry.file_url }}" target="_blank" onclick="event.stopPropagation();"
+                        >{{ entry.name }}</a
+                    >
                     {% endif %}
                 </td>
                 <td class="file-size-col file-size">

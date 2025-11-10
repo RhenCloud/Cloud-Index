@@ -291,8 +291,18 @@ h1 > div {
     background-color: var(--hover-bg);
 }
 
+.file-name-col {
+    cursor: pointer;
+    user-select: none;
+}
+
+.file-name-col:hover {
+    background-color: var(--hover-bg);
+}
+
 .file-icon {
     margin-right: 8px;
+    pointer-events: none;
 }
 
 .folder {

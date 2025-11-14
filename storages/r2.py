@@ -19,9 +19,7 @@ class R2Storage(BaseStorage):
             raise RuntimeError("R2_ENDPOINT_URL environment variable is not set")
 
         self.access_key = os.getenv("ACCESS_KEY_ID") or os.getenv("ACCESS_KEY_ID")
-        self.secret_key = os.getenv("SECRET_ACCESS_KEY") or os.getenv(
-            "SECRET_ACCESS_KEY"
-        )
+        self.secret_key = os.getenv("SECRET_ACCESS_KEY") or os.getenv("SECRET_ACCESS_KEY")
 
         if not self.access_key or not self.secret_key:
             raise RuntimeError("ACCESS_KEY_ID and SECRET_ACCESS_KEY must be set")
@@ -162,9 +160,7 @@ class R2Storage(BaseStorage):
 
             # 复制对象到新路径
             copy_source = {"Bucket": self.bucket_name, "Key": old_key}
-            s3_client.copy_object(
-                CopySource=copy_source, Bucket=self.bucket_name, Key=new_key
-            )
+            s3_client.copy_object(CopySource=copy_source, Bucket=self.bucket_name, Key=new_key)
 
             # 删除原对象
             s3_client.delete_object(Bucket=self.bucket_name, Key=old_key)
@@ -195,9 +191,7 @@ class R2Storage(BaseStorage):
             # 分批次删除，S3/R2 一次最多删除 1000 个
             for i in range(0, len(objects_to_delete), 1000):
                 chunk = objects_to_delete[i : i + 1000]
-                s3_client.delete_objects(
-                    Bucket=self.bucket_name, Delete={"Objects": chunk}
-                )
+                s3_client.delete_objects(Bucket=self.bucket_name, Delete={"Objects": chunk})
 
             return True
         except Exception as e:
@@ -225,9 +219,7 @@ class R2Storage(BaseStorage):
             for old_key in objects_to_rename:
                 new_key = old_key.replace(old_prefix, new_prefix, 1)
                 copy_source = {"Bucket": self.bucket_name, "Key": old_key}
-                s3_client.copy_object(
-                    CopySource=copy_source, Bucket=self.bucket_name, Key=new_key
-                )
+                s3_client.copy_object(CopySource=copy_source, Bucket=self.bucket_name, Key=new_key)
 
             # 删除旧文件夹下的所有对象
             self.delete_folder(old_prefix)
@@ -244,9 +236,7 @@ class R2Storage(BaseStorage):
         try:
             s3_client = self.get_s3_client()
             copy_source = {"Bucket": self.bucket_name, "Key": source_key}
-            s3_client.copy_object(
-                CopySource=copy_source, Bucket=self.bucket_name, Key=dest_key
-            )
+            s3_client.copy_object(CopySource=copy_source, Bucket=self.bucket_name, Key=dest_key)
             return True
         except Exception as e:
             print(f"File copy failed: {str(e)}")
@@ -322,3 +312,48 @@ class R2Storage(BaseStorage):
         }
 
         return content_types.get(ext, "application/octet-stream")
+
+    def generate_download_response(self, key: str) -> Dict[str, Any]:
+        """
+        生成文件下载响应（R2 实现）
+
+        Args:
+            key: 对象键名（文件路径）
+
+        Returns:
+            包含下载信息的字典
+        """
+        try:
+            s3_client = self.get_s3_client()
+            file_name = key.split("/")[-1] if "/" in key else key
+
+            # 使用 RFC 5987 编码处理文件名
+            from urllib.parse import quote
+
+            encoded_filename = quote(file_name.encode("utf-8"), safe="")
+
+            # 生成带有 Content-Disposition 的预签名 URL
+            expires = int(os.getenv("R2_PRESIGN_EXPIRES", "3600"))
+
+            url = s3_client.generate_presigned_url(
+                "get_object",
+                Params={
+                    "Bucket": self.bucket_name,
+                    "Key": key,
+                    "ResponseContentDisposition": f"attachment; filename=\"{file_name}\"; filename*=UTF-8''{encoded_filename}",
+                },
+                ExpiresIn=expires,
+            )
+
+            if url:
+                return {"type": "redirect", "url": url}
+
+            # 如果预签名 URL 失败，尝试公共 URL
+            public_url = self.get_public_url(key)
+            if public_url:
+                return {"type": "redirect", "url": public_url}
+
+            return None
+        except Exception as e:
+            print(f"R2 download response generation failed: {str(e)}")
+            return None

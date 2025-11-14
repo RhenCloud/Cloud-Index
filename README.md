@@ -96,20 +96,18 @@ python app.py
 ```env
 STORAGE_TYPE=r2
 
+# R2 账户 ID
+R2_ACCOUNT_ID=your-account-id
+
 # R2 访问凭证
-ACCESS_KEY_ID=your_access_key_id
-SECRET_ACCESS_KEY=your_secret_access_key
+R2_ACCESS_KEY_ID=your_access_key_id
+R2_SECRET_ACCESS_KEY=your_secret_access_key
 
 # R2 存储桶配置
 R2_BUCKET_NAME=your_bucket_name
-R2_ENDPOINT_URL=https://your-account-id.r2.cloudflarestorage.com
-R2_REGION=auto
 
-# 可选：公共访问 URL
-R2_PUBLIC_URL=https://pub-your-bucket.r2.dev
-
-# 可选：预签名 URL 过期时间（秒）
-R2_PRESIGN_EXPIRES=3600
+# 可选：公共访问域名
+R2_PUBLIC_DOMAIN=https://pub-your-bucket.r2.dev
 ```
 
 ### GitHub Repository 配置
@@ -117,26 +115,15 @@ R2_PRESIGN_EXPIRES=3600
 ```env
 STORAGE_TYPE=github
 
-# GitHub 仓库所有者（用户名或组织）
-GITHUB_REPO_OWNER=your-username
-
-# GitHub 仓库名称
-GITHUB_REPO_NAME=your-repo
+# GitHub 仓库 (格式: owner/repo)
+GITHUB_REPO=your-username/your-repo
 
 # GitHub 个人访问令牌（需要 repo 权限）
 # 获取方式：https://github.com/settings/tokens
-GITHUB_ACCESS_TOKEN=ghp_your_token_here
+GITHUB_TOKEN=ghp_your_token_here
 
 # GitHub 分支名称（可选，默认: main）
 GITHUB_BRANCH=main
-
-# GitHub Raw 文件反向代理 URL（可选，用于加速访问）
-# 常用反向代理：
-# - https://raw.fastgit.org （推荐，速度快）
-# - https://ghproxy.com
-# - https://raw.kgithub.com
-# 留空则使用官方 raw.githubusercontent.com（国内可能较慢）
-GITHUB_RAW_PROXY_URL=https://raw.fastgit.org
 ```
 
 ## 项目结构
@@ -144,6 +131,8 @@ GITHUB_RAW_PROXY_URL=https://raw.fastgit.org
 ```bash
 cloud-index/
 ├── app.py                 # Flask 应用主入口
+├── config.py              # 统一配置管理
+├── utils.py               # 工具函数模块
 ├── handlers/
 │   └── routes.py         # 路由处理器
 ├── storages/             # 存储后端实现
@@ -153,11 +142,16 @@ cloud-index/
 │   ├── r2.py            # Cloudflare R2 实现
 │   └── github.py        # GitHub Repository 实现
 ├── templates/           # HTML 模板
+│   ├── base.html
 │   ├── index.html
 │   └── footer.html
 ├── static/             # 静态资源
-│   └── thumbs/
+│   ├── css/
+│   │   └── main.css
+│   └── js/
+│       └── main.js
 ├── .env.example        # 环境变量示例
+├── pyproject.toml      # 项目配置和依赖
 └── requirements.txt    # Python 依赖
 ```
 

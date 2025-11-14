@@ -1,33 +1,16 @@
 import hashlib
-import os
 from datetime import datetime
 from typing import Any, Dict, List
 
 from flask import Blueprint, Response, abort, jsonify, redirect, render_template, request
 
+from config import Config
 from storages.factory import StorageFactory
 
 main_route = Blueprint("main", __name__)
 
 # 初始化存储（使用工厂模式）
 storage = StorageFactory.get_storage()
-
-# 缩略图默认 TTL（秒），可通过环境变量覆盖
-THUMB_TTL = int(os.environ.get("THUMB_TTL_SECONDS", "3600"))
-
-
-def format_timestamp(timestamp) -> str:
-    """
-    格式化时间戳为人类可读的格式
-    """
-    return storage.format_timestamp(timestamp)
-
-
-def get_public_url(key: str) -> str:
-    """
-    生成对象的公共访问 URL
-    """
-    return storage.get_public_url(key)
 
 
 def get_file_url(key: str) -> str:
@@ -53,12 +36,12 @@ def build_file_entry(obj: Dict[str, Any], prefix: str) -> Dict[str, Any] | None:
         "name": rel_name,
         "key": key,
         "size": obj.get("Size"),
-        "last_modified": format_timestamp(obj.get("LastModified")),
+        "last_modified": storage.format_timestamp(obj.get("LastModified")),
         "is_dir": False,
         "file_url": get_file_url(key),
     }
 
-    public_url = get_public_url(key)
+    public_url = storage.get_public_url(key)
     if public_url:
         entry["public_url"] = public_url
 
@@ -220,7 +203,7 @@ def thumb(file_path):
     """返回图片的缩略图，使用 Vercel Cache Headers 避免重复从 R2 拉取"""
     # 设置更长的缓存控制头以支持浏览器本地缓存
     cache_headers = {
-        "Cache-Control": f"public, max-age={THUMB_TTL}",
+        "Cache-Control": f"public, max-age={Config.THUMB_TTL_SECONDS}",
         "ETag": f'W/"{hashlib.md5(file_path.encode("utf-8")).hexdigest()}"',
     }
 
@@ -326,9 +309,9 @@ def rename(old_key):
             return jsonify({"success": False, "error": "New name not provided"}), 400
 
         # 构建新的文件路径
-        prefix = os.path.dirname(old_key)
-        if prefix:
-            new_key = f"{prefix}/{new_name}"
+        old_key_parts = old_key.rsplit("/", 1)
+        if len(old_key_parts) > 1:
+            new_key = f"{old_key_parts[0]}/{new_name}"
         else:
             new_key = new_name
 
@@ -379,9 +362,9 @@ def rename_folder_route(old_prefix):
             old_prefix += "/"
 
         # 构建新的文件夹路径
-        parent_prefix = os.path.dirname(os.path.dirname(old_prefix))
-        if parent_prefix:
-            new_prefix = f"{parent_prefix}/{new_name}/"
+        prefix_parts = old_prefix.rstrip("/").rsplit("/", 1)
+        if len(prefix_parts) > 1:
+            new_prefix = f"{prefix_parts[0]}/{new_name}/"
         else:
             new_prefix = f"{new_name}/"
 

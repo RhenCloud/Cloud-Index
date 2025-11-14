@@ -1,16 +1,14 @@
 import base64
-import os
 from datetime import datetime
 from io import BytesIO
 from typing import Any, Dict
 
-import dotenv
 import requests
 from PIL import Image
 
-from .base import BaseStorage
+from config import Config
 
-dotenv.load_dotenv()
+from .base import BaseStorage
 
 
 class StreamWrapper:
@@ -50,29 +48,30 @@ class GitHubStorage(BaseStorage):
     """基于 GitHub 仓库的存储实现"""
 
     def __init__(self):
-        self.repo_owner = os.getenv("GITHUB_REPO_OWNER")
-        self.repo_name = os.getenv("GITHUB_REPO_NAME")
-        self.access_token = os.getenv("GITHUB_ACCESS_TOKEN")
-        self.branch = os.getenv("GITHUB_BRANCH", "main")
-        # 反向代理 URL，用于加速 GitHub raw 文件访问
-        # 例如：https://raw. githubusercontent.com/ 的反向代理 URL
-        self.raw_proxy_url = os.getenv("GITHUB_RAW_PROXY_URL", "").rstrip("/")
+        """初始化 GitHub 存储客户端"""
+        self.token = Config.GITHUB_TOKEN
+        repo_full = Config.GITHUB_REPO  # 格式: owner/repo
+        self.branch = Config.GITHUB_BRANCH
 
-        if not all([self.repo_owner, self.repo_name, self.access_token]):
-            raise RuntimeError("GITHUB_REPO_OWNER, GITHUB_REPO_NAME, GITHUB_ACCESS_TOKEN must be set")
+        if not self.token or not repo_full:
+            raise RuntimeError("GITHUB_TOKEN and GITHUB_REPO must be set")
+
+        # 解析 owner/repo
+        repo_parts = repo_full.split("/")
+        if len(repo_parts) != 2:
+            raise RuntimeError(f"GITHUB_REPO must be in format 'owner/repo', got: {repo_full}")
+
+        self.repo_owner = repo_parts[0]
+        self.repo_name = repo_parts[1]
+        self.repo = repo_full
 
         self.api_base_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}"
-
-        # 如果配置了代理 URL，则使用代理 URL；否则使用官方 raw.githubusercontent.com
-        if self.raw_proxy_url:
-            self.raw_content_url = f"{self.raw_proxy_url}/https://raw.githubusercontent.com/{self.repo_owner}/{self.repo_name}/{self.branch}"
-        else:
-            self.raw_content_url = f"https://raw.githubusercontent.com/{self.repo_owner}/{self.repo_name}/{self.branch}"
+        self.raw_content_url = f"https://raw.githubusercontent.com/{self.repo_owner}/{self.repo_name}/{self.branch}"
 
     def _headers(self) -> Dict[str, str]:
         """返回 API 请求的公共头部信息"""
         return {
-            "Authorization": f"token {self.access_token}",
+            "Authorization": f"token {self.token}",
             "Accept": "application/vnd.github.v3+json",
         }
 

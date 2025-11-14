@@ -3,29 +3,34 @@ from io import BytesIO
 from typing import Any, Dict
 
 import boto3
-import dotenv
-from botocore.config import Config
+from botocore.config import Config as BotocoreConfig
 from PIL import Image
+
+from config import Config
 
 from .base import BaseStorage
 
-dotenv.load_dotenv()
-
 
 class R2Storage(BaseStorage):
-    def __init__(self):
-        self.endpoint = os.getenv("R2_ENDPOINT_URL")
-        if not self.endpoint:
-            raise RuntimeError("R2_ENDPOINT_URL environment variable is not set")
+    """Cloudflare R2 存储后端实现"""
 
-        self.access_key = os.getenv("ACCESS_KEY_ID") or os.getenv("ACCESS_KEY_ID")
-        self.secret_key = os.getenv("SECRET_ACCESS_KEY") or os.getenv("SECRET_ACCESS_KEY")
+    def __init__(self):
+        """初始化 R2 存储客户端"""
+        # 从统一配置中读取
+        account_id = Config.R2_ACCOUNT_ID
+        if not account_id:
+            raise RuntimeError("R2_ACCOUNT_ID environment variable is not set")
+
+        self.endpoint = f"https://{account_id}.r2.cloudflarestorage.com"
+        self.access_key = Config.R2_ACCESS_KEY_ID
+        self.secret_key = Config.R2_SECRET_ACCESS_KEY
 
         if not self.access_key or not self.secret_key:
-            raise RuntimeError("ACCESS_KEY_ID and SECRET_ACCESS_KEY must be set")
+            raise RuntimeError("R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY must be set")
 
-        self.region_name = os.getenv("R2_REGION", "auto")
-        self.bucket_name = os.getenv("R2_BUCKET_NAME")
+        self.region_name = "auto"
+        self.bucket_name = Config.R2_BUCKET_NAME
+        self.public_domain = Config.R2_PUBLIC_DOMAIN
 
     def get_s3_client(self):
         """
@@ -36,7 +41,7 @@ class R2Storage(BaseStorage):
             endpoint_url=self.endpoint,
             aws_access_key_id=self.access_key,
             aws_secret_access_key=self.secret_key,
-            config=Config(signature_version="s3v4"),
+            config=BotocoreConfig(signature_version="s3v4"),
             region_name=self.region_name,
         )
 
@@ -93,10 +98,9 @@ class R2Storage(BaseStorage):
         """
         生成对象的公共访问 URL
         """
-        base_url = os.getenv("R2_PUBLIC_URL")
-        if not base_url:
+        if not self.public_domain:
             return None
-        return f"{base_url.rstrip('/')}/{key}"
+        return f"{self.public_domain.rstrip('/')}/{key}"
 
     def generate_thumbnail(self, file_path: str) -> bytes:
         """

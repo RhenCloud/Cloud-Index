@@ -1,13 +1,10 @@
-import os
 from typing import Optional
 
-import dotenv
+from config import Config
 
 from .base import BaseStorage
 from .github import GitHubStorage
 from .r2 import R2Storage
-
-dotenv.load_dotenv()
 
 
 class StorageFactory:
@@ -29,24 +26,19 @@ class StorageFactory:
         if cls._instance is not None:
             return cls._instance
 
-        storage_type = os.getenv("STORAGE_TYPE")
+        storage_type = Config.STORAGE_TYPE
 
         if not storage_type:
-            raise RuntimeError(
-                "STORAGE_TYPE environment variable is not set. "
-                "Supported types: r2, github"
-            )
-
-        storage_type = storage_type.lower()
+            raise RuntimeError("STORAGE_TYPE environment variable is not set. Supported types: r2, github")
 
         if storage_type == "r2":
             cls._instance = R2Storage()
         elif storage_type == "github":
             cls._instance = GitHubStorage()
         else:
-            raise RuntimeError(
-                f"Unsupported storage type: {storage_type}. Supported types: r2, github"
-            )
+            raise RuntimeError(f"Unsupported storage type: {storage_type}. Supported types: r2, github")
+
+        return cls._instance
 
         return cls._instance
 

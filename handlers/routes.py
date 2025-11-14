@@ -9,8 +9,16 @@ from storages.factory import StorageFactory
 
 main_route = Blueprint("main", __name__)
 
-# 初始化存储（使用工厂模式）
-storage = StorageFactory.get_storage()
+# 延迟初始化的存储实例
+_storage = None
+
+
+def get_storage():
+    """获取存储实例（延迟初始化）"""
+    global _storage
+    if _storage is None:
+        _storage = StorageFactory.get_storage()
+    return _storage
 
 
 def get_file_url(key: str) -> str:
@@ -20,6 +28,7 @@ def get_file_url(key: str) -> str:
 
 def build_file_entry(obj: Dict[str, Any], prefix: str) -> Dict[str, Any] | None:
     """根据对象信息构建文件条目。"""
+    storage = get_storage()
     key = obj.get("Key", "")
     if not key:
         return None
@@ -98,6 +107,7 @@ def index():
     返回文件和目录列表的 HTML 页面。
     """
     try:
+        storage = get_storage()
         prefix = request.args.get("prefix", "") or ""
 
         response = storage.list_objects(prefix)
@@ -119,6 +129,7 @@ def index():
 def browse(prefix_path):
     """目录路由。将 URL /a/b 映射为 prefix 'a/b/' 并重用 index 的逻辑。"""
     try:
+        storage = get_storage()
         prefix = prefix_path or ""
         if prefix and not prefix.endswith("/"):
             prefix = prefix + "/"
@@ -142,6 +153,7 @@ def browse(prefix_path):
 def serve_file(file_path):
     """重定向到原始存储 URL，节省服务器资源"""
     try:
+        storage = get_storage()
         # 验证文件存在
         try:
             storage.get_object_info(file_path)
@@ -169,6 +181,7 @@ def serve_file(file_path):
 def download_file(file_path):
     """下载文件，支持所有存储类型"""
     try:
+        storage = get_storage()
         # 验证文件存在
         try:
             storage.get_object_info(file_path)
@@ -201,6 +214,7 @@ def download_file(file_path):
 @main_route.route("/thumb/<path:file_path>")
 def thumb(file_path):
     """返回图片的缩略图，使用 Vercel Cache Headers 避免重复从 R2 拉取"""
+    storage = get_storage()
     # 设置更长的缓存控制头以支持浏览器本地缓存
     cache_headers = {
         "Cache-Control": f"public, max-age={Config.THUMB_TTL_SECONDS}",
@@ -240,6 +254,7 @@ def thumb(file_path):
 def upload():
     """上传文件到存储"""
     try:
+        storage = get_storage()
         # 检查是否有文件
         if "file" not in request.files:
             return jsonify({"success": False, "error": "No file provided"}), 400
@@ -286,6 +301,7 @@ def upload():
 def delete(file_path):
     """删除存储中的文件"""
     try:
+        storage = get_storage()
         # 删除文件
         success = storage.delete_file(file_path)
 
@@ -302,6 +318,7 @@ def delete(file_path):
 def rename(old_key):
     """重命名存储中的文件"""
     try:
+        storage = get_storage()
         data = request.get_json()
         new_name = data.get("newName")
 
@@ -337,6 +354,7 @@ def rename(old_key):
 def delete_folder_route(prefix):
     """删除存储中的文件夹"""
     try:
+        storage = get_storage()
         if not prefix.endswith("/"):
             prefix += "/"
         success = storage.delete_folder(prefix)
@@ -352,6 +370,7 @@ def delete_folder_route(prefix):
 def rename_folder_route(old_prefix):
     """重命名存储中的文件夹"""
     try:
+        storage = get_storage()
         data = request.get_json()
         new_name = data.get("newName")
 
@@ -388,6 +407,7 @@ def rename_folder_route(old_prefix):
 def copy_item():
     """复制文件或文件夹"""
     try:
+        storage = get_storage()
         data = request.get_json()
         source = data.get("source")
         destination = data.get("destination")
@@ -420,6 +440,7 @@ def copy_item():
 def move_item():
     """移动文件或文件夹"""
     try:
+        storage = get_storage()
         data = request.get_json()
         source = data.get("source")
         destination = data.get("destination")
@@ -452,6 +473,7 @@ def move_item():
 def create_folder_route():
     """创建文件夹"""
     try:
+        storage = get_storage()
         data = request.get_json()
         path = data.get("path")
 

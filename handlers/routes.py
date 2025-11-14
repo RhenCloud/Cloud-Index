@@ -3,15 +3,7 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List
 
-from flask import (
-    Blueprint,
-    Response,
-    abort,
-    jsonify,
-    redirect,
-    render_template,
-    request,
-)
+from flask import Blueprint, Response, abort, jsonify, redirect, render_template, request
 
 from storages.factory import StorageFactory
 
@@ -77,18 +69,12 @@ def build_file_entry(obj: Dict[str, Any], prefix: str) -> Dict[str, Any] | None:
     return entry
 
 
-def build_directory_entry(
-    prefix_value: str | None, current_prefix: str
-) -> Dict[str, Any] | None:
+def build_directory_entry(prefix_value: str | None, current_prefix: str) -> Dict[str, Any] | None:
     """根据前缀构建目录条目。"""
     if not prefix_value:
         return None
 
-    rel = (
-        prefix_value[len(current_prefix) :].rstrip("/")
-        if current_prefix
-        else prefix_value.rstrip("/")
-    )
+    rel = prefix_value[len(current_prefix) :].rstrip("/") if current_prefix else prefix_value.rstrip("/")
 
     return {"name": rel, "key": prefix_value, "is_dir": True}
 
@@ -198,7 +184,7 @@ def serve_file(file_path):
 
 @main_route.route("/download/<path:file_path>")
 def download_file(file_path):
-    """为 GitHub 存储提供下载支持，添加 Content-Disposition 头以强制下载"""
+    """下载文件，支持所有存储类型"""
     try:
         # 验证文件存在
         try:
@@ -206,56 +192,23 @@ def download_file(file_path):
         except Exception:
             abort(404)
 
-        # 获取存储类型
-        storage_type = type(storage).__name__
+        # 使用存储后端的统一接口生成下载响应
+        download_response = storage.generate_download_response(file_path)
 
-        # GitHub 存储：通过服务器中继以添加 Content-Disposition 头
-        if storage_type == "GitHubStorage":
-            try:
-                file_obj = storage.get_object(file_path)
-                file_name = file_path.split("/")[-1] if "/" in file_path else file_path
+        if not download_response:
+            abort(403)
 
-                # 获取完整内容用于返回
-                body = file_obj.get("Body")
-                if hasattr(body, "read"):
-                    content = body.read()
-                elif hasattr(body, "data"):
-                    content = body.data
-                else:
-                    content = body
-
-                # 使用 RFC 5987 编码处理文件名中的特殊字符
-                from urllib.parse import quote
-
-                encoded_filename = quote(file_name.encode("utf-8"), safe="")
-
-                headers = {
-                    "Content-Type": file_obj.get(
-                        "ContentType", "application/octet-stream"
-                    ),
-                    "Content-Disposition": f"attachment; filename=\"{file_name}\"; filename*=UTF-8''{encoded_filename}",
-                    "Cache-Control": "public, max-age=86400",
-                }
-
-                return Response(
-                    content,
-                    headers=headers,
-                    mimetype=file_obj.get("ContentType", "application/octet-stream"),
-                )
-            except Exception as e:
-                print(f"GitHub download error: {e}")
-                abort(404)
-
-        # R2 和其他存储：直接重定向
-        presigned = storage.generate_presigned_url(file_path)
-        if presigned:
-            return redirect(presigned)
-
-        public_url = storage.get_public_url(file_path)
-        if public_url:
-            return redirect(public_url)
-
-        abort(403)
+        # 根据响应类型处理
+        if download_response["type"] == "redirect":
+            return redirect(download_response["url"])
+        elif download_response["type"] == "content":
+            return Response(
+                download_response["content"],
+                headers=download_response["headers"],
+                mimetype=download_response["mimetype"],
+            )
+        else:
+            abort(500)
 
     except Exception as e:
         print(f"Download error: {e}")
@@ -459,9 +412,7 @@ def copy_item():
 
         if not source or not destination:
             return (
-                jsonify(
-                    {"success": False, "error": "Source or destination not provided"}
-                ),
+                jsonify({"success": False, "error": "Source or destination not provided"}),
                 400,
             )
 
@@ -493,9 +444,7 @@ def move_item():
 
         if not source or not destination:
             return (
-                jsonify(
-                    {"success": False, "error": "Source or destination not provided"}
-                ),
+                jsonify({"success": False, "error": "Source or destination not provided"}),
                 400,
             )
 

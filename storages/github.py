@@ -59,13 +59,9 @@ class GitHubStorage(BaseStorage):
         self.raw_proxy_url = os.getenv("GITHUB_RAW_PROXY_URL", "").rstrip("/")
 
         if not all([self.repo_owner, self.repo_name, self.access_token]):
-            raise RuntimeError(
-                "GITHUB_REPO_OWNER, GITHUB_REPO_NAME, GITHUB_ACCESS_TOKEN must be set"
-            )
+            raise RuntimeError("GITHUB_REPO_OWNER, GITHUB_REPO_NAME, GITHUB_ACCESS_TOKEN must be set")
 
-        self.api_base_url = (
-            f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}"
-        )
+        self.api_base_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}"
 
         # 如果配置了代理 URL，则使用代理 URL；否则使用官方 raw.githubusercontent.com
         if self.raw_proxy_url:
@@ -121,11 +117,7 @@ class GitHubStorage(BaseStorage):
         try:
             # 移除末尾的 / 以保持 GitHub API 的一致性
             prefix = prefix.rstrip("/") if prefix else ""
-            url = (
-                f"{self.api_base_url}/contents/{prefix}"
-                if prefix
-                else f"{self.api_base_url}/contents"
-            )
+            url = f"{self.api_base_url}/contents/{prefix}" if prefix else f"{self.api_base_url}/contents"
             response = requests.get(url, headers=self._headers())
             response.raise_for_status()
 
@@ -212,9 +204,7 @@ class GitHubStorage(BaseStorage):
             return {
                 "Body": StreamWrapper(content),
                 "ContentLength": len(content),
-                "ContentType": response.headers.get(
-                    "Content-Type", "application/octet-stream"
-                ),
+                "ContentType": response.headers.get("Content-Type", "application/octet-stream"),
             }
         except Exception as e:
             raise RuntimeError(f"Failed to get object: {str(e)}") from e
@@ -498,3 +488,49 @@ class GitHubStorage(BaseStorage):
         except Exception as e:
             print(f"Create folder failed: {str(e)}")
             return False
+
+    def generate_download_response(self, key: str) -> Dict[str, Any]:
+        """
+        生成文件下载响应（GitHub 特有实现）
+
+        GitHub 存储需要通过服务器中继以添加 Content-Disposition 头
+
+        Args:
+            key: 对象键名（文件路径）
+
+        Returns:
+            包含下载信息的字典
+        """
+        try:
+            file_obj = self.get_object(key)
+            file_name = key.split("/")[-1] if "/" in key else key
+
+            # 获取完整内容
+            body = file_obj.get("Body")
+            if hasattr(body, "read"):
+                content = body.read()
+            elif hasattr(body, "data"):
+                content = body.data
+            else:
+                content = body
+
+            # 使用 RFC 5987 编码处理文件名中的特殊字符
+            from urllib.parse import quote
+
+            encoded_filename = quote(file_name.encode("utf-8"), safe="")
+
+            headers = {
+                "Content-Type": file_obj.get("ContentType", "application/octet-stream"),
+                "Content-Disposition": f"attachment; filename=\"{file_name}\"; filename*=UTF-8''{encoded_filename}",
+                "Cache-Control": "public, max-age=86400",
+            }
+
+            return {
+                "type": "content",
+                "content": content,
+                "headers": headers,
+                "mimetype": file_obj.get("ContentType", "application/octet-stream"),
+            }
+        except Exception as e:
+            print(f"GitHub download response generation failed: {str(e)}")
+            return None

@@ -208,3 +208,29 @@ class BaseStorage(ABC):
             创建成功返回 True，失败返回 False
         """
         pass
+
+    def generate_download_response(self, key: str) -> Dict[str, Any]:
+        """
+        生成文件下载响应
+
+        Args:
+            key: 对象键名（文件路径）
+
+        Returns:
+            包含下载信息的字典，包括:
+            - type: "redirect" 或 "content"
+            - url: 重定向URL（当type为redirect时）
+            - content: 文件内容（当type为content时）
+            - headers: HTTP响应头
+            - mimetype: MIME类型
+        """
+        # 默认实现：返回重定向URL
+        presigned = self.generate_presigned_url(key)
+        if presigned:
+            return {"type": "redirect", "url": presigned}
+
+        public_url = self.get_public_url(key)
+        if public_url:
+            return {"type": "redirect", "url": public_url}
+
+        return None

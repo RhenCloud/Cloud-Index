@@ -1,6 +1,6 @@
 [project]
 name = "Cloud-Index"
-version = "0.10.1"
+version = "0.11.2"
 description = "A cloud storage index system based on a number of cloud storage platforms"
 authors = [{ name = "RhenCloud", email = "i@rhen.cloud" }]
 readme = "README.md"

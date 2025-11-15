@@ -42,6 +42,53 @@ async function uploadFiles(files) {
 }
 
 /**
+ * 新建文件夹（弹出输入框并调用后端创建）
+ */
+async function promptCreateFolder() {
+    const currentPrefix = document.body.dataset.currentPrefix || "";
+    const name = await showPrompt("请输入新文件夹名称：", {
+        title: "新建文件夹",
+        confirmLabel: "创建",
+        placeholder: "例如：photos 或 nested/folder",
+    });
+
+    if (!name) return;
+
+    // 规范化路径：允许嵌套，移除多余斜杠
+    let normalized = name.trim().replace(/\\/g, "/");
+    normalized = normalized.replace(/^\/+|\/+$/g, "");
+    if (!normalized) {
+        updateStatus("✗ 文件夹名称不能为空", "error");
+        return;
+    }
+
+    const fullPath = (currentPrefix || "") + normalized + "/";
+    updateStatus(`正在创建文件夹: ${fullPath}...`, null);
+
+    try {
+        const response = await fetch("/create_folder", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: fullPath }),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            const statusDiv = updateStatus("✓ 文件夹创建成功！", "success");
+            hideStatusLater(statusDiv);
+            setTimeout(() => {
+                // 进入新建的文件夹
+                window.location.href = `/${(currentPrefix + normalized).replace(/\/+$/, "")}`;
+            }, 1200);
+        } else {
+            updateStatus(`✗ 创建失败: ${result.error}`, "error");
+        }
+    } catch (error) {
+        updateStatus(`✗ 创建失败: ${error.message}`, "error");
+    }
+}
+
+/**
  * 提示删除文件
  */
 async function promptDelete() {
@@ -389,6 +436,7 @@ window.FileOps = {
     renameFile,
     renameFolder,
     promptRename,
+    promptCreateFolder,
     copyItem,
     moveItem,
     promptCopyOrMove,

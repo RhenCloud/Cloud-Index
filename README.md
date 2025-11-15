@@ -266,29 +266,22 @@ A: 参考项目结构中的"添加新的存储后端"部分，继承 `BaseStorag
 
 **基本流程**：
 
-1. **Fork 项目**  
+1. **Fork 项目**
    点击 GitHub 页面右上角的 "Fork" 按钮
 
-2. **克隆到本地**  
+2. **克隆到本地**
 
    ```bash
    git clone https://github.com/your-username/Cloud-Index.git
    cd Cloud-Index
    ```
 
-3. **创建功能分支**  
-
-   ```bash
-   git checkout -b feature/your-feature-name
-   # 或修复 Bug: git checkout -b fix/bug-description
-   ```
-
-4. **进行开发**  
+3. **进行开发**
    - 遵循现有的代码风格
    - 添加必要的注释
    - 确保代码能正常运行
 
-5. **提交更改**  
+4. **提交更改**
 
    ```bash
    git add .
@@ -296,13 +289,13 @@ A: 参考项目结构中的"添加新的存储后端"部分，继承 `BaseStorag
    # 或 "fix: 修复某某问题"
    ```
 
-6. **推送到 GitHub**  
+5. **推送到 GitHub**
 
    ```bash
-   git push origin feature/your-feature-name
+   git push origin main
    ```
 
-7. **创建 Pull Request**  
+6. **创建 Pull Request**
    - 在 GitHub 上打开你的 Fork
    - 点击 "New Pull Request"
    - 填写 PR 描述，说明你的更改内容和原因

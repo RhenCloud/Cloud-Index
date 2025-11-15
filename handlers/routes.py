@@ -50,13 +50,8 @@ def build_file_entry(obj: Dict[str, Any], prefix: str) -> Dict[str, Any] | None:
         "file_url": get_file_url(key),
     }
 
-    public_url = storage.get_public_url(key)
-    if public_url:
-        entry["public_url"] = public_url
-
-    presigned = storage.generate_presigned_url(key)
-    if presigned:
-        entry["presigned_url"] = presigned
+    # 性能优化：避免在列表阶段为每个文件预取公共/预签名链接
+    # 统一走 /file/<key> 路由，点击时再获取所需链接
 
     return entry
 

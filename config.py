@@ -30,6 +30,13 @@ class Config:
     GITHUB_REPO: Optional[str] = os.getenv("GITHUB_REPO")  # 格式: owner/repo
     GITHUB_BRANCH: str = os.getenv("GITHUB_BRANCH", "main")
 
+    # OneDrive 配置
+    ONEDRIVE_REFRESH_TOKEN: Optional[str] = os.getenv("ONEDRIVE_REFRESH_TOKEN")
+    ONEDRIVE_CLIENT_ID: Optional[str] = os.getenv("ONEDRIVE_CLIENT_ID")
+    ONEDRIVE_CLIENT_SECRET: Optional[str] = os.getenv("ONEDRIVE_CLIENT_SECRET")
+    ONEDRIVE_FOLDER_ID: Optional[str] = os.getenv("ONEDRIVE_FOLDER_ID")  # 可选，默认使用 /me/drive/root
+    ONEDRIVE_REDIRECT_URI: Optional[str] = os.getenv("ONEDRIVE_REDIRECT_URI")  # 可选，刷新令牌时某些应用需要
+
     # 应用配置
     HOST: str = os.getenv("HOST", "0.0.0.0")
     PORT: int = int(os.getenv("PORT", "5000"))
@@ -46,7 +53,7 @@ class Config:
     def validate(cls) -> None:
         """验证必需的配置项是否已设置"""
         if not cls.STORAGE_TYPE:
-            raise ValueError("STORAGE_TYPE environment variable is not set. Supported types: r2, github")
+            raise ValueError("STORAGE_TYPE environment variable is not set. Supported types: r2, github, onedrive")
 
         if cls.STORAGE_TYPE == "r2":
             required = ["R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET_NAME"]
@@ -60,8 +67,14 @@ class Config:
             if missing:
                 raise ValueError(f"Missing required GitHub configuration: {', '.join(missing)}")
 
-        elif cls.STORAGE_TYPE not in ["r2", "github"]:
-            raise ValueError(f"Unsupported storage type: {cls.STORAGE_TYPE}. Supported types: r2, github")
+        elif cls.STORAGE_TYPE == "onedrive":
+            required = ["ONEDRIVE_REFRESH_TOKEN", "ONEDRIVE_CLIENT_ID", "ONEDRIVE_CLIENT_SECRET"]
+            missing = [key for key in required if not getattr(cls, key)]
+            if missing:
+                raise ValueError(f"Missing required OneDrive configuration: {', '.join(missing)}")
+
+        elif cls.STORAGE_TYPE not in ["r2", "github", "onedrive"]:
+            raise ValueError(f"Unsupported storage type: {cls.STORAGE_TYPE}. Supported types: r2, github, onedrive")
 
     @classmethod
     def get_storage_config(cls) -> dict:
@@ -79,5 +92,13 @@ class Config:
                 "token": cls.GITHUB_TOKEN,
                 "repo": cls.GITHUB_REPO,
                 "branch": cls.GITHUB_BRANCH,
+            }
+        elif cls.STORAGE_TYPE == "onedrive":
+            return {
+                "client_id": cls.ONEDRIVE_CLIENT_ID,
+                "client_secret": cls.ONEDRIVE_CLIENT_SECRET,
+                "refresh_token": cls.ONEDRIVE_REFRESH_TOKEN,
+                "folder_id": cls.ONEDRIVE_FOLDER_ID,
+                "redirect_uri": cls.ONEDRIVE_REDIRECT_URI,
             }
         return {}

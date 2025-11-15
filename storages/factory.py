@@ -4,6 +4,7 @@ from config import Config
 
 from .base import BaseStorage
 from .github import GitHubStorage
+from .onedrive import OnedriveStorage
 from .r2 import R2Storage
 
 
@@ -29,16 +30,16 @@ class StorageFactory:
         storage_type = Config.STORAGE_TYPE
 
         if not storage_type:
-            raise RuntimeError("STORAGE_TYPE environment variable is not set. Supported types: r2, github")
+            raise RuntimeError("STORAGE_TYPE environment variable is not set. Supported types: r2, github, onedrive")
 
         if storage_type == "r2":
             cls._instance = R2Storage()
         elif storage_type == "github":
             cls._instance = GitHubStorage()
+        elif storage_type == "onedrive":
+            cls._instance = OnedriveStorage()
         else:
-            raise RuntimeError(f"Unsupported storage type: {storage_type}. Supported types: r2, github")
-
-        return cls._instance
+            raise RuntimeError(f"Unsupported storage type: {storage_type}. Supported types: r2, github, onedrive")
 
         return cls._instance
 

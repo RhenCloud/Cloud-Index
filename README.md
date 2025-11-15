@@ -36,7 +36,7 @@
 
 - [x] Github Repo 储存支持
 - [ ] Github Release 储存支持
-- [ ] Microsoft Onedrive 储存支持
+- [x] Microsoft Onedrive 储存支持
 - [ ] 基于数据库的用户/权限管理
 - [ ] 操作日志记录
 - [ ] Office Documents 预览支持
@@ -48,6 +48,7 @@
 - **Cloudflare R2** - Cloudflare 的对象存储服务（S3 兼容）
 - **Amazon S3** - Amazon S3 对象存储服务
 - **GitHub Repository** - 基于 GitHub Repository 的存储服务
+- **Microsoft Onedrive** - Microsoft Onedrive 云端硬盘
 <!-- - **Github Release** - 基于 GitHub Release 的存储服务 -->
 
 ## 快速开始

@@ -6,8 +6,8 @@
 
 我在这个项目上至少花费了：
 
-[![CodeTime Badge](https://shields.jannchie.com/endpoint?style=social&color=222&url=https%3A%2F%2Fapi.codetime.dev%2Fv3%2Fusers%2Fshield%3Fuid%3D34631%26project%3Dr2-index)](https://codetime.dev)
-[![CodeTime Badge](https://shields.jannchie.com/endpoint?style=social&color=222&url=https%3A%2F%2Fapi.codetime.dev%2Fv3%2Fusers%2Fshield%3Fuid%3D34631%26project%3DCloudIndexDocs)](https://codetime.dev)
+[![Wakapi Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fwakapi.rhen.cloud%2Fapi%2Fcompat%2Fshields%2Fv1%2FRhenCloud%2Finterval%3ACloud-Index&query=%24.message&style=flat&label=Cloud-Index&color=%24.color
+)](https://wakapi.rhen.cloud)
 
 ## 特性
 

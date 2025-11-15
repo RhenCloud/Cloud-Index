@@ -12,7 +12,12 @@ function attachDownloadButtonListeners() {
             button.addEventListener("click", () => {
                 const key = button.dataset.downloadKey;
                 const name = button.dataset.downloadName;
-                downloadFile(`/download/${key}`, name);
+                // 对路径分段编码，保留路径分隔符，避免 # ? 等字符破坏 URL
+                const encoded = key
+                    .split("/")
+                    .map((seg) => encodeURIComponent(seg))
+                    .join("/");
+                downloadFile(`/download/${encoded}`, name);
             });
             button.dataset.listenerAttached = "true";
         }

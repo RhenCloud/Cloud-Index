@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from io import BytesIO
 from typing import Any, Dict, Optional
+from urllib.parse import quote
 
 import requests
 from PIL import Image
@@ -36,6 +37,27 @@ class OnedriveStorage(BaseStorage):
         # 初始化 access_token 并刷新
         self.access_token = None
         self._refresh_token()
+
+    def _item_path_url(self, key: str, action: str | None = None) -> str:
+        """根据 folder_item_id 构造基于路径的 DriveItem URL，可附带动作后缀。
+
+        Examples:
+            - action=None => ...:/path:
+            - action='content' => ...:/path:/content
+            - action='createLink' => ...:/path:/createLink
+            - action='thumbnails' => ...:/path:/thumbnails
+        """
+        key = key.strip("/")
+        # 对路径进行 URL 编码，但保留路径分隔符 '/'
+        key_quoted = quote(key, safe="/")
+        base = (
+            f"{self.graph_api_url}/me/drive/root:/{key_quoted}:"
+            if self.folder_item_id == "root"
+            else f"{self.graph_api_url}/me/drive/items/{self.folder_item_id}:/{key_quoted}:"
+        )
+        if action:
+            return base + f"/{action}"
+        return base
 
     def _refresh_token(self) -> None:
         """刷新 OneDrive 访问令牌"""
@@ -190,10 +212,16 @@ class OnedriveStorage(BaseStorage):
             # 直接基于路径列出，避免先查 ID 再列出造成的额外往返
             select = "$select=name,size,lastModifiedDateTime,id,folder,file"
             if prefix:
+                # 对前缀进行 URL 编码，保留路径分隔符
+                from urllib.parse import quote as _quote
+
+                quoted_prefix = _quote(prefix.strip("/"), safe="/")
                 if self.folder_item_id == "root":
-                    url = f"{self.graph_api_url}/me/drive/root:/{prefix}:/children?{select}"
+                    url = f"{self.graph_api_url}/me/drive/root:/{quoted_prefix}:/children?{select}"
                 else:
-                    url = f"{self.graph_api_url}/me/drive/items/{self.folder_item_id}:/{prefix}:/children?{select}"
+                    url = (
+                        f"{self.graph_api_url}/me/drive/items/{self.folder_item_id}:/{quoted_prefix}:/children?{select}"
+                    )
             else:
                 if self.folder_item_id == "root":
                     url = f"{self.graph_api_url}/me/drive/root/children?{select}"
@@ -258,9 +286,7 @@ class OnedriveStorage(BaseStorage):
             对象元数据
         """
         try:
-            key = key.strip("/")
-            url = f"{self.graph_api_url}/me/drive/items/{self.folder_item_id}:/{key}:"
-
+            url = self._item_path_url(key)
             response = self._api_request("GET", url)
             response.raise_for_status()
 
@@ -285,11 +311,7 @@ class OnedriveStorage(BaseStorage):
             包含对象内容的字典
         """
         try:
-            key = key.strip("/")
-
-            # 获取下载 URL
-            url = f"{self.graph_api_url}/me/drive/items/{self.folder_item_id}:/{key}:/content"
-
+            url = self._item_path_url(key, "content")
             response = self._api_request("GET", url)
             response.raise_for_status()
 
@@ -313,24 +335,60 @@ class OnedriveStorage(BaseStorage):
         """
         try:
             expires = expires or Config.PRESIGNED_URL_EXPIRES
-            key = key.strip("/")
+            url = self._item_path_url(key, "createLink")
 
-            # OneDrive 会自动处理预签名 URL
-            url = f"{self.graph_api_url}/me/drive/items/{self.folder_item_id}:/{key}:/createLink"
-
-            request_body = {
+            body = {
                 "type": "view",
+                "scope": "anonymous",
                 "expirationDateTime": (datetime.utcnow() + timedelta(seconds=expires)).isoformat() + "Z",
             }
 
-            response = requests.post(url, headers=self._headers(), json=request_body)
+            response = requests.post(url, headers=self._headers(), json=body, timeout=15)
 
-            if response.status_code == 201:
-                return response.json().get("link", {}).get("webUrl")
+            if response.status_code in (200, 201):
+                data = response.json() or {}
+                link = data.get("link") or {}
+                web = link.get("webUrl")
+                if web:
+                    # 强制下载提示（视 OneDrive 行为而定）
+                    sep = "&" if "?" in web else "?"
+                    return f"{web}{sep}download=1"
 
             return None
         except Exception:
             return None
+
+    def _get_direct_download_url(self, key: str) -> Optional[str]:
+        """从 DriveItem 元数据中获取临时直链（@microsoft.graph.downloadUrl）。"""
+        try:
+            url = self._item_path_url(key)
+            resp = self._api_request("GET", url)
+            if resp.status_code == 200:
+                data = resp.json() or {}
+                # Graph 返回的预签名直链属性
+                return data.get("@microsoft.graph.downloadUrl") or data.get("@microsoft.graph.downloadurl")
+        except Exception:
+            return None
+        return None
+
+    def generate_download_response(self, key: str) -> Dict[str, Any]:
+        """优先返回 OneDrive 的临时直链（直接文件内容），避免跳转到预览页。"""
+        # 1) 直链（最佳体验：直接获取文件内容，不经过 OneDrive 预览页）
+        direct = self._get_direct_download_url(key)
+        if direct:
+            return {"type": "redirect", "url": direct}
+
+        # 2) 匿名分享链接（添加 download=1 提示下载）
+        presigned = self.generate_presigned_url(key)
+        if presigned:
+            return {"type": "redirect", "url": presigned}
+
+        # 3) 回退到 webUrl（可能需要登录）
+        public_url = self.get_public_url(key)
+        if public_url:
+            return {"type": "redirect", "url": public_url}
+
+        return None
 
     def get_public_url(self, key: str) -> str:
         """
@@ -343,13 +401,11 @@ class OnedriveStorage(BaseStorage):
             公共 URL，未配置返回 None
         """
         try:
-            key = key.strip("/")
-            # OneDrive 的共享 URL
-            url = f"{self.graph_api_url}/me/drive/items/{self.folder_item_id}:/{key}:/webUrl"
-
-            response = requests.get(url, headers=self._headers())
+            # 直接获取 DriveItem 元数据并读取 webUrl 字段
+            url = self._item_path_url(key)
+            response = self._api_request("GET", url)
             if response.status_code == 200:
-                return response.json().get("webUrl")
+                return (response.json() or {}).get("webUrl")
 
             return None
         except Exception:
@@ -368,16 +424,15 @@ class OnedriveStorage(BaseStorage):
             上传成功返回 True，失败返回 False
         """
         try:
-            key = key.strip("/")
-            url = f"{self.graph_api_url}/me/drive/items/{self.folder_item_id}:/{key}:/content"
+            url = self._item_path_url(key, "content")
 
-            # 自定义头部（因为我们需要指定 Content-Type）
+            # 自定义头部（需要指定 Content-Type）
             headers = {
                 "Authorization": f"Bearer {self.access_token}",
                 "Content-Type": content_type or "application/octet-stream",
             }
 
-            response = requests.put(url, headers=headers, data=file_data)
+            response = requests.put(url, headers=headers, data=file_data, timeout=30)
             response.raise_for_status()
 
             return response.status_code == 200 or response.status_code == 201
@@ -397,9 +452,7 @@ class OnedriveStorage(BaseStorage):
             删除成功返回 True，失败返回 False
         """
         try:
-            key = key.strip("/")
-            url = f"{self.graph_api_url}/me/drive/items/{self.folder_item_id}:/{key}:"
-
+            url = self._item_path_url(key)
             response = self._api_request("DELETE", url)
             return response.status_code == 204
         except Exception as e:
@@ -451,12 +504,8 @@ class OnedriveStorage(BaseStorage):
             缩略图字节数据
         """
         try:
-            file_path = file_path.strip("/")
-
-            # 获取缩略图 URL
-            url = f"{self.graph_api_url}/me/drive/items/{self.folder_item_id}:/{file_path}:/thumbnails"
-
-            response = requests.get(url, headers=self._headers())
+            url = self._item_path_url(file_path, "thumbnails")
+            response = requests.get(url, headers=self._headers(), timeout=15)
             response.raise_for_status()
 
             thumbnails = response.json().get("value", [])

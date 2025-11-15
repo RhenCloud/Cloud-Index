@@ -166,31 +166,19 @@ function downloadFile(url, filename) {
         return;
     }
 
-    if (url.startsWith("/download/")) {
-        fetch(url)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.blob();
-            })
-            .then((blob) => {
-                const link = document.createElement("a");
-                const blobUrl = URL.createObjectURL(blob);
-                link.href = blobUrl;
-                link.download = filename || "file";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(blobUrl);
+    if (url.startsWith("/download/") || url.startsWith("/file/")) {
+        // 让浏览器原生跟随服务器重定向（OneDrive 直链/共享链接），避免 fetch 对 3xx 的处理差异
+        const link = document.createElement("a");
+        link.href = url;
+        link.target = "_blank";
+        link.rel = "noopener";
 
-                const statusDiv = updateStatus(`✓ 开始下载: ${filename || ""}`, "success");
-                hideStatusLater(statusDiv);
-            })
-            .catch((error) => {
-                console.error("Download error:", error);
-                updateStatus(`✗ 下载失败: ${error.message}`, "error");
-            });
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        const statusDiv = updateStatus(`✓ 开始下载: ${filename || ""}`, "success");
+        hideStatusLater(statusDiv);
     } else {
         const link = document.createElement("a");
         link.href = url;

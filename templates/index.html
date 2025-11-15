@@ -195,7 +195,10 @@ current_prefix }}"{% endblock %} {% block content %}
             <div class="grid-thumb" onclick="openPreview('{{ entry.file_url }}', '{{ entry.name }}')">
                 <img
                     style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px"
-                    src="{{ entry.file_url }}"
+                    src="/thumb/{{ entry.key }}"
+                    loading="lazy"
+                    decoding="async"
+                    fetchpriority="low"
                     alt="{{ entry.name }}"
                 />
             </div>
@@ -281,4 +284,74 @@ current_prefix }}"{% endblock %} {% block content %}
         <div id="previewInfo" class="preview-info"></div>
     </div>
 </div>
+{% endblock %} {% block scripts %}
+<script>
+    // 客户端分页：初始只渲染部分条目，点击“加载更多”逐步显示，减少首屏 DOM 与渲染压力
+    (function () {
+        const PAGE_CHUNK = 200; // 每次显示的条目数（表格与网格分别按该步长展开）
+        function hideBeyond(nodeList) {
+            let hidden = 0;
+            for (let i = PAGE_CHUNK; i < nodeList.length; i++) {
+                const el = nodeList[i];
+                if (!el.hasAttribute("hidden")) {
+                    el.setAttribute("hidden", "");
+                    hidden++;
+                }
+            }
+            return hidden;
+        }
+        function revealNext(nodeList, count) {
+            let revealed = 0;
+            for (let i = 0; i < nodeList.length && revealed < count; i++) {
+                const el = nodeList[i];
+                if (el.hasAttribute("hidden")) {
+                    el.removeAttribute("hidden");
+                    revealed++;
+                }
+            }
+            return revealed;
+        }
+
+        function setupLoadMore() {
+            const tableRows = document.querySelectorAll("table.files-table tbody tr");
+            const gridCards = document.querySelectorAll("#gridContainer .grid-card");
+            let hiddenCount = 0;
+            hiddenCount += hideBeyond(tableRows);
+            hiddenCount += hideBeyond(gridCards);
+
+            if (hiddenCount === 0) return;
+
+            // 创建“加载更多”按钮
+            const moreWrap = document.createElement("div");
+            moreWrap.style.display = "flex";
+            moreWrap.style.justifyContent = "center";
+            moreWrap.style.margin = "16px 0 24px";
+
+            const btn = document.createElement("button");
+            btn.className = "view-toggle";
+            btn.type = "button";
+            const info = document.createElement("span");
+            info.style.marginLeft = "8px";
+            info.textContent = hiddenCount;
+            btn.textContent = "加载更多";
+            btn.appendChild(info);
+            moreWrap.appendChild(btn);
+
+            const container = document.querySelector(".container");
+            container && container.appendChild(moreWrap);
+
+            btn.addEventListener("click", () => {
+                const shown = revealNext(tableRows, PAGE_CHUNK) + revealNext(gridCards, PAGE_CHUNK);
+                hiddenCount = Math.max(0, hiddenCount - shown);
+                if (hiddenCount <= 0) {
+                    moreWrap.remove();
+                } else {
+                    info.textContent = hiddenCount;
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", setupLoadMore);
+    })();
+</script>
 {% endblock %}

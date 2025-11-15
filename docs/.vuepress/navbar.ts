@@ -24,6 +24,7 @@ export default defineNavbarConfig([
             { text: "Cloudflare R2", link: "/storage/r2" },
             { text: "Amazon S3", link: "/storage/s3" },
             { text: "GitHub", link: "/storage/github" },
+            { text: "OneDrive", link: "/storage/onedrive" },
         ],
     },
 ]);

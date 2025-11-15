@@ -1,0 +1,85 @@
+/**
+ * 状态消息和其他实用样式
+ */
+
+/* 上传进度提示 */
+.upload-status {
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    display: none;
+}
+
+.upload-status.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    display: block;
+}
+
+.upload-status.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    display: block;
+}
+
+/* 页脚样式 */
+.site-footer {
+    margin-top: 20px;
+    text-align: center;
+    color: var(--secondary-text);
+    font-size: 0.9em;
+    padding: 14px 12px;
+}
+
+.site-footer a {
+    color: var(--link-color);
+    text-decoration: none;
+    margin: 0 6px;
+}
+
+.site-footer a:hover {
+    text-decoration: underline;
+}
+
+/* 上传输入框 */
+.upload-input {
+    display: none;
+}
+
+/* 禁用状态 */
+.is-disabled {
+    opacity: 0.6;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+@media (max-width: 600px) {
+    .site-footer {
+        font-size: 0.85em;
+        padding: 12px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 12px;
+        width: calc(100% - 20px);
+    }
+
+    h1 {
+        margin-bottom: 20px;
+        padding-bottom: 8px;
+        justify-content: flex-start;
+    }
+
+    h1 > div {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}

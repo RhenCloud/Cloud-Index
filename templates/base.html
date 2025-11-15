@@ -6,7 +6,7 @@
         <title>{% block title %}Cloud Index{% endblock %}</title>
         <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" />
         {% block head_extra %}{% endblock %}
     </head>
     <body {% block body_attrs %}{% endblock %}>
@@ -27,7 +27,24 @@
                 </div>
             </div>
         </div>
-        <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
+        <script defer src="{{ url_for('static', filename='js/ui-utils.js') }}"></script>
+        <script defer src="{{ url_for('static', filename='js/dialog.js') }}"></script>
+        <script defer src="{{ url_for('static', filename='js/theme.js') }}"></script>
+        <script defer src="{{ url_for('static', filename='js/utilities.js') }}"></script>
+        <script defer src="{{ url_for('static', filename='js/file-operations.js') }}"></script>
+        <script defer src="{{ url_for('static', filename='js/selection.js') }}"></script>
+        <script defer src="{{ url_for('static', filename='js/download.js') }}"></script>
+        <script defer src="{{ url_for('static', filename='js/preview.js') }}"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                window.DialogUtils.initDialog();
+                window.ThemeUtils.initThemeAndView();
+                window.UtilityFuncs.unregisterServiceWorker();
+                window.UtilityFuncs.registerModalHandlers();
+                window.SelectionUtils.attachEntryCheckboxListeners();
+                window.DownloadUtils.attachDownloadButtonListeners();
+            });
+        </script>
         {% block scripts %}{% endblock %}
     </body>
 </html>

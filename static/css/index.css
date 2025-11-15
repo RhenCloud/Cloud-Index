@@ -1,0 +1,22 @@
+/**
+ * Cloud-Index 主样式表
+ * 这个文件导入所有模块化的 CSS 文件
+ */
+
+/* 1. 变量和基础样式 */
+@import url("variables.css");
+
+/* 2. 按钮样式 */
+@import url("buttons.css");
+
+/* 3. 表格视图 */
+@import url("table.css");
+
+/* 4. 网格视图 */
+@import url("grid.css");
+
+/* 5. 模态框和对话框 */
+@import url("modals.css");
+
+/* 6. 实用工具样式 */
+@import url("utilities.css");
